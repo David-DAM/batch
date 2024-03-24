@@ -6,7 +6,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.item.Chunk;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 @RequiredArgsConstructor
+@Component
 public class WritterListener implements ItemWriteListener<Product> {
 
     private final Stats stats;

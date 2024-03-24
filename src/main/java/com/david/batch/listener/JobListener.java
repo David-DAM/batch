@@ -4,7 +4,10 @@ import com.david.batch.domain.Stats;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.stereotype.Component;
+
 @RequiredArgsConstructor
+@Component
 public class JobListener implements JobExecutionListener {
 
     private final Stats stats;

@@ -2,6 +2,7 @@ package com.david.batch.config;
 
 import com.david.batch.domain.Product;
 import com.david.batch.processor.ProductProcessor;
+import com.david.batch.processor.SendEmailStats;
 import com.david.batch.repository.ProductRepository;
 import com.david.batch.domain.Stats;
 import com.david.batch.listener.JobListener;
@@ -33,7 +34,11 @@ public class BatchConfig {
     private final ProductRepository productRepository;
     private final JobRepository jobRepository;
     private final PlatformTransactionManager platformTransactionManager;
-    private final Stats stats;
+    private final SendEmailStats sendEmailStats;
+    private final ProductProcessor processor;
+    private final JobListener jobListener;
+    private final ReaderListener readerListener;
+    private final WritterListener writterListener;
 
     @Bean
     public FlatFileItemReader<Product> reader(){
@@ -62,10 +67,7 @@ public class BatchConfig {
 
         return lineMapper;
     }
-    @Bean
-    public ProductProcessor processor(){
-        return new ProductProcessor(stats);
-    }
+
     @Bean
     public RepositoryItemWriter<Product> writer(){
         RepositoryItemWriter<Product> writer =  new RepositoryItemWriter<>();
@@ -75,40 +77,37 @@ public class BatchConfig {
         return writer;
     }
     @Bean
-    public WritterListener writterListener(){
-        return new WritterListener(stats);
-    }
-    public ReaderListener readerListener(){
-        return new ReaderListener(stats);
-    }
-    @Bean
     public TaskExecutor taskExecutor(){
         SimpleAsyncTaskExecutor asyncTaskExecutor =  new SimpleAsyncTaskExecutor();
         asyncTaskExecutor.setConcurrencyLimit(10);
         return asyncTaskExecutor;
     }
     @Bean
-    public Step importStep(){
+    public Step step1(){
         return new StepBuilder("csvImport", jobRepository)
                 .<Product,Product>chunk(10, platformTransactionManager)
                 .reader(reader())
-                .processor(processor())
+                .processor(processor)
                 .writer(writer())
-                .listener(writterListener())
-                .listener(readerListener())
+                .listener(writterListener)
+                .listener(readerListener)
                 .taskExecutor(taskExecutor())
                 .build();
-    }
-    @Bean
-    public JobListener jobListener(){
-        return new JobListener(stats);
     }
 
     @Bean
     public Job runJob(){
         return new JobBuilder("importProducts",jobRepository)
-                .start(importStep())
-                .listener(jobListener())
+                .start(step1())
+                .listener(jobListener)
+                .next(step2())
+                .build();
+    }
+
+    @Bean
+    public Step step2(){
+        return new StepBuilder("sendEmailResults", jobRepository)
+                .tasklet(sendEmailStats, platformTransactionManager)
                 .build();
     }
 

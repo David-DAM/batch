@@ -4,7 +4,10 @@ import com.david.batch.domain.Product;
 import com.david.batch.domain.Stats;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.ItemReadListener;
+import org.springframework.stereotype.Component;
+
 @RequiredArgsConstructor
+@Component
 public class ReaderListener implements ItemReadListener<Product> {
 
     private final Stats stats;
