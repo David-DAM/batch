@@ -1,7 +1,12 @@
 package com.david.batch.config;
 
 import com.david.batch.domain.Product;
-import com.david.batch.domain.ProductRepository;
+import com.david.batch.processor.ProductProcessor;
+import com.david.batch.repository.ProductRepository;
+import com.david.batch.domain.Stats;
+import com.david.batch.listener.JobListener;
+import com.david.batch.listener.ReaderListener;
+import com.david.batch.listener.WritterListener;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -28,6 +33,7 @@ public class BatchConfig {
     private final ProductRepository productRepository;
     private final JobRepository jobRepository;
     private final PlatformTransactionManager platformTransactionManager;
+    private final Stats stats;
 
     @Bean
     public FlatFileItemReader<Product> reader(){
@@ -58,7 +64,7 @@ public class BatchConfig {
     }
     @Bean
     public ProductProcessor processor(){
-        return new ProductProcessor();
+        return new ProductProcessor(stats);
     }
     @Bean
     public RepositoryItemWriter<Product> writer(){
@@ -69,15 +75,11 @@ public class BatchConfig {
         return writer;
     }
     @Bean
-    public Step importStep(){
-        return new StepBuilder("csvImport", jobRepository)
-                .<Product,Product>chunk(10, platformTransactionManager)
-                .reader(reader())
-                .processor(processor())
-                .writer(writer())
-                .taskExecutor(taskExecutor())
-                .listener(listener())
-                .build();
+    public WritterListener writterListener(){
+        return new WritterListener(stats);
+    }
+    public ReaderListener readerListener(){
+        return new ReaderListener(stats);
     }
     @Bean
     public TaskExecutor taskExecutor(){
@@ -86,14 +88,27 @@ public class BatchConfig {
         return asyncTaskExecutor;
     }
     @Bean
-    public Listener listener(){
-        return new Listener();
+    public Step importStep(){
+        return new StepBuilder("csvImport", jobRepository)
+                .<Product,Product>chunk(10, platformTransactionManager)
+                .reader(reader())
+                .processor(processor())
+                .writer(writer())
+                .listener(writterListener())
+                .listener(readerListener())
+                .taskExecutor(taskExecutor())
+                .build();
+    }
+    @Bean
+    public JobListener jobListener(){
+        return new JobListener(stats);
     }
 
     @Bean
     public Job runJob(){
         return new JobBuilder("importProducts",jobRepository)
                 .start(importStep())
+                .listener(jobListener())
                 .build();
     }
 
