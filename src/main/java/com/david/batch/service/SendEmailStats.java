@@ -1,8 +1,8 @@
-package com.david.batch.processor;
+package com.david.batch.service;
 
+import com.david.batch.domain.Category;
 import com.david.batch.domain.Stats;
-import jakarta.mail.Message;
-import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,11 +12,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -75,10 +72,14 @@ public class SendEmailStats implements Tasklet {
                             <tr>
                                 <th>ERRORS</th>
                                 <th>PROCESSED</th>
+                                <th>COMPUTERS PROCESSED</th>
+                                <th>PHONES PROCESSED</th>
                             </tr>
                             <tr>
                                 <td>{errors}</td>
-                                <td>{processed}</td>
+                                <td>{processes}</td>
+                                <td>{computers}</td>
+                                <td>{phones}</td>
                             </tr>
                         </table>
                     </body>
@@ -90,34 +91,38 @@ public class SendEmailStats implements Tasklet {
 
         try {
 
-            text = text.replace("{errors}",String.valueOf(stats.getErrors()));
-            text = text.replace("{wellProcessed}",String.valueOf(stats.getWellProcessed()));
-            text = text.replace("{processed}",String.valueOf(stats.getProcessed()));
-
-            //TODO set stats to 0
-
-            MimeMessage message = mailSender.createMimeMessage();
-
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-            helper.setFrom(senderEmail);
-            helper.setTo(personalEmail);
-            helper.setSubject("IMPORT PRODUCTS REPORT");
-            helper.setText(text,text);
-
-
-            FileSystemResource file = new FileSystemResource(new File("src/main/resources/report.csv"));
-            helper.addAttachment("report.csv", file);
-
-            mailSender.send(helper.getMimeMessage());
+            sendEmail();
 
             log.info("Import products report send correctly");
 
-        }catch (MailException e){
-            log.error("Import products report could not be send");
+        } catch (MessagingException e){
+            log.error("Error sending email with products report");
+        } catch (Exception e){
+            log.error("Unexpected error, import products report could not be send");
         }
 
+        return RepeatStatus.FINISHED;
+    }
 
-        return null;
+    private void sendEmail() throws MessagingException {
+        text = text.replace("{errors}",String.valueOf(stats.getErrors()));
+        text = text.replace("{processes}",String.valueOf(stats.getProcessed()));
+        text = text.replace("{computers}",String.valueOf(stats.getCategoryQuantities().get(Category.COMPUTER)));
+        text = text.replace("{phones}",String.valueOf(stats.getCategoryQuantities().get(Category.PHONE)));
+
+        MimeMessage message = mailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(senderEmail);
+        helper.setTo(personalEmail);
+        helper.setSubject("IMPORT PRODUCTS REPORT");
+        helper.setText(text,text);
+
+
+        FileSystemResource file = new FileSystemResource(new File("src/main/resources/report.csv"));
+        helper.addAttachment("report.csv", file);
+
+        mailSender.send(helper.getMimeMessage());
     }
 }

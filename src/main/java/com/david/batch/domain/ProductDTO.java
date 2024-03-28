@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ProductResult {
+public class ProductDTO {
 
     private Long id;
     private String name;

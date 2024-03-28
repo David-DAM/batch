@@ -5,12 +5,11 @@ import com.david.batch.domain.Stats;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.batch.item.Chunk;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class WritterListener implements ItemWriteListener<Product> {
+public class WriterListener implements ItemWriteListener<Product> {
 
     private final Stats stats;
 
@@ -21,7 +20,7 @@ public class WritterListener implements ItemWriteListener<Product> {
 
     @Override
     public void afterWrite(Chunk items) {
-       stats.addWellProcessed();
+        stats.addProcessed(items.size());
     }
 
     @Override

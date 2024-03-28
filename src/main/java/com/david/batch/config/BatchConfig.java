@@ -1,15 +1,16 @@
 package com.david.batch.config;
 
 import com.david.batch.domain.Product;
-import com.david.batch.domain.ProductResult;
+import com.david.batch.domain.ProductDTO;
 import com.david.batch.domain.Stats;
+import com.david.batch.listener.ProcessorListener;
 import com.david.batch.processor.ProductProcessor;
-import com.david.batch.processor.ResultProcessor;
-import com.david.batch.processor.SendEmailStats;
+import com.david.batch.processor.ProductDTOProcessor;
+import com.david.batch.service.SendEmailStats;
 import com.david.batch.repository.ProductRepository;
 import com.david.batch.listener.JobListener;
 import com.david.batch.listener.ReaderListener;
-import com.david.batch.listener.WritterListener;
+import com.david.batch.listener.WriterListener;
 import com.david.batch.writer.DatabaseWriter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -36,7 +37,6 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
@@ -48,10 +48,11 @@ public class BatchConfig {
     private final PlatformTransactionManager platformTransactionManager;
     private final SendEmailStats sendEmailStats;
     private final ProductProcessor processorStep1;
-    private final ResultProcessor processorStep2;
-    private final JobListener jobListener;
+    private final ProductDTOProcessor processorStep2;
     private final ReaderListener readerListenerStep1;
-    private final WritterListener writerListenerStep1;
+    private final ProcessorListener processorListenerStep2;
+    private final WriterListener writerListenerStep1;
+    private final JobListener jobListener;
     private final DatabaseWriter writerStep1;
     private final Stats stats;
 
@@ -82,7 +83,7 @@ public class BatchConfig {
 
         return lineMapper;
     }
-
+    //Alternative to use if is only needed to do some operation
     @Bean
     public RepositoryItemWriter<Product> writerStep1(){
         RepositoryItemWriter<Product> writer =  new RepositoryItemWriter<>();
@@ -91,26 +92,7 @@ public class BatchConfig {
 
         return writer;
     }
-    @Bean
-    public FlatFileItemWriter<ProductResult> writerStep2(){
-        FlatFileItemWriter<ProductResult> writer = new FlatFileItemWriter<>();
-
-        FileSystemResource resource = new FileSystemResource("src/main/resources/report.csv");
-        writer.setEncoding("UTF-8");
-        writer.setResource(resource);
-        writer.setShouldDeleteIfExists(true);
-
-        BeanWrapperFieldExtractor<ProductResult> fieldExtractor = new BeanWrapperFieldExtractor<>();
-        fieldExtractor.setNames(new String[] { "id", "name", "category" });
-
-        DelimitedLineAggregator<ProductResult> lineAggregator = new DelimitedLineAggregator<>();
-        lineAggregator.setDelimiter(",");
-        lineAggregator.setFieldExtractor(fieldExtractor);
-
-        writer.setLineAggregator(lineAggregator);
-
-        return writer;
-    }
+    //Avoid task executor for problems with concurrency on Stats resources
     @Bean
     public TaskExecutor taskExecutor(){
         SimpleAsyncTaskExecutor asyncTaskExecutor =  new SimpleAsyncTaskExecutor();
@@ -122,32 +104,57 @@ public class BatchConfig {
         return new StepBuilder("csvImportDatabase", jobRepository)
                 .<Product,Product>chunk(10, platformTransactionManager)
                 .reader(readerStep1())
+                .listener(readerListenerStep1)
                 .processor(processorStep1)
                 .writer(writerStep1)
                 .listener(writerListenerStep1)
-                .listener(readerListenerStep1)
-                .taskExecutor(taskExecutor())
+                //.taskExecutor(taskExecutor())
                 .build();
     }
-
-
     @Bean
     @StepScope
     public ItemReader<Product> readerStep2(){
 
-        List<Product> processedItems = stats.getProcessedItems().stream().toList();
-        stats.getProcessedItems().clear();
-        return new ListItemReader<Product>(processedItems);
+        List<Product> processedItems = stats.getWrittenItems().stream().toList();
+
+        return new ListItemReader<>(processedItems);
+    }
+    @Bean
+    public FlatFileItemWriter<ProductDTO> writerStep2(){
+        FlatFileItemWriter<ProductDTO> writer = new FlatFileItemWriter<>();
+
+        FileSystemResource resource = new FileSystemResource("src/main/resources/report.csv");
+        writer.setEncoding("UTF-8");
+        writer.setResource(resource);
+        writer.setShouldDeleteIfExists(true);
+
+        BeanWrapperFieldExtractor<ProductDTO> fieldExtractor = new BeanWrapperFieldExtractor<>();
+        fieldExtractor.setNames(new String[] { "id", "name", "category" });
+
+        DelimitedLineAggregator<ProductDTO> lineAggregator = new DelimitedLineAggregator<>();
+        lineAggregator.setDelimiter(",");
+        lineAggregator.setFieldExtractor(fieldExtractor);
+
+        writer.setLineAggregator(lineAggregator);
+
+        return writer;
     }
 
     @Bean
     public Step step2(){
         return new StepBuilder("csvFileResultsImport", jobRepository)
-                .<Product,ProductResult>chunk(10, platformTransactionManager)
+                .<Product, ProductDTO>chunk(10, platformTransactionManager)
                 .reader(readerStep2())
                 .processor(processorStep2)
+                .listener(processorListenerStep2)
                 .writer(writerStep2())
-                .taskExecutor(taskExecutor())
+                //.taskExecutor(taskExecutor())
+                .build();
+    }
+    @Bean
+    public Step step3(){
+        return new StepBuilder("sendEmailResults", jobRepository)
+                .tasklet(sendEmailStats, platformTransactionManager)
                 .build();
     }
 
@@ -155,16 +162,9 @@ public class BatchConfig {
     public Job runJob(){
         return new JobBuilder("importProducts",jobRepository)
                 .start(step1())
-                .listener(jobListener)
                 .next(step2())
                 .next(step3())
-                .build();
-    }
-
-    @Bean
-    public Step step3(){
-        return new StepBuilder("sendEmailResults", jobRepository)
-                .tasklet(sendEmailStats, platformTransactionManager)
+                .listener(jobListener)
                 .build();
     }
 

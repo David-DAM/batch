@@ -23,6 +23,6 @@ public class DatabaseWriter implements ItemWriter<Product> {
 
         List<? extends Product> saved = productRepository.saveAll(items);
 
-        stats.getProcessedItems().addAll(saved);
+        stats.getWrittenItems().addAll(saved);
     }
 }

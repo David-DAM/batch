@@ -14,10 +14,13 @@ ___
 ### DESCRIPCCIÓN:
 
 Las funcionalidades de este proyecto son:
-- Realizar la insercción de productos recibidos de un archivo CSV a una base de datos ( en mi caso desplegada con Docker )
-- Crear un archivo de texto con los resultados de los productos insertados
-- Enviar un correo con los resultados y el archivo .txt
+- Realizar la insercción de productos recibidos de un archivo CSV a una base de datos desplegada con Docker
+- Crear un archivo CSV con los resultados de los productos DTO insertados
+- Enviar un correo con los resultados y el archivo CSV
 
-### Futuras mejoras:
+### TODO:
 - Generar PDF de los resultados obtenidos añadir al mail
+- Añadir cabecera de campos en primera linea del CSV enviado por correo
+- Hacerlo tolerante a fallos
+- Añadir conexión con kibana
 
