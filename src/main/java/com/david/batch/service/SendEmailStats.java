@@ -1,6 +1,8 @@
 package com.david.batch.service;
 
 import com.david.batch.domain.Category;
+import com.david.batch.domain.ProductDTO;
+import com.david.batch.domain.ProductDTOMapper;
 import com.david.batch.domain.Stats;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -17,6 +19,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +29,8 @@ public class SendEmailStats implements Tasklet {
 
     private final Stats stats;
     private final JavaMailSender mailSender;
+    private final ReportGenerator reportGenerator;
+    private final ProductDTOMapper productDTOMapper;
     @Value("${spring.mail.personal.username}")
     private String personalEmail;
     @Value("${spring.mail.username}")
@@ -91,6 +97,12 @@ public class SendEmailStats implements Tasklet {
 
         try {
 
+            reportGenerator.exportToPdf(stats.getWrittenItems()
+                    .stream()
+                    .map(productDTOMapper)
+                    .toList()
+            );
+
             sendEmail();
 
             log.info("Import products report send correctly");
@@ -98,7 +110,7 @@ public class SendEmailStats implements Tasklet {
         } catch (MessagingException e){
             log.error("Error sending email with products report");
         } catch (Exception e){
-            log.error("Unexpected error, import products report could not be send");
+            log.error("Unexpected error, import products report could not be send: " +e.getMessage());
         }
 
         return RepeatStatus.FINISHED;
@@ -120,8 +132,11 @@ public class SendEmailStats implements Tasklet {
         helper.setText(text,text);
 
 
-        FileSystemResource file = new FileSystemResource(new File("src/main/resources/report.csv"));
-        helper.addAttachment("report.csv", file);
+        FileSystemResource csv = new FileSystemResource(new File("src/main/resources/report.csv"));
+        helper.addAttachment("report.csv", csv);
+
+        FileSystemResource pdf = new FileSystemResource(new File("src/main/resources/report.pdf"));
+        helper.addAttachment("report.pdf", pdf);
 
         mailSender.send(helper.getMimeMessage());
     }
