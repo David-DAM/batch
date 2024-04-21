@@ -3,6 +3,7 @@ package com.david.batch.config;
 import com.david.batch.domain.Product;
 import com.david.batch.domain.ProductDTO;
 import com.david.batch.domain.Stats;
+import com.david.batch.faultTolerant.CustomSkipPolicy;
 import com.david.batch.listener.JobListener;
 import com.david.batch.listener.ProcessorListener;
 import com.david.batch.listener.ReaderListener;
@@ -23,6 +24,7 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.batch.item.file.LineMapper;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
@@ -55,6 +57,7 @@ public class BatchConfig {
     private final JobListener jobListener;
     private final DatabaseWriter writerStep1;
     private final Stats stats;
+    private final CustomSkipPolicy customSkipPolicy;
 
     @Bean
     public FlatFileItemReader<Product> readerStep1(){
@@ -72,7 +75,7 @@ public class BatchConfig {
 
         DelimitedLineTokenizer lineTokenizer = new DelimitedLineTokenizer();
         lineTokenizer.setDelimiter(",");
-        lineTokenizer.setStrict(false);
+        lineTokenizer.setStrict(true);
         lineTokenizer.setNames("id","name","description","price","image","category");
 
         BeanWrapperFieldSetMapper<Product> fieldSetMapper = new BeanWrapperFieldSetMapper<>();
@@ -108,6 +111,10 @@ public class BatchConfig {
                 .processor(processorStep1)
                 .writer(writerStep1)
                 .listener(writerListenerStep1)
+                .faultTolerant()
+                .skipPolicy(customSkipPolicy)
+                //.skipLimit(1)
+                //.skip(FlatFileParseException.class)
                 //.taskExecutor(taskExecutor())
                 .build();
     }
