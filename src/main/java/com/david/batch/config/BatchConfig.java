@@ -1,5 +1,6 @@
 package com.david.batch.config;
 
+import com.david.batch.decision.FlowDecision;
 import com.david.batch.domain.Product;
 import com.david.batch.domain.ProductDTO;
 import com.david.batch.domain.Stats;
@@ -18,6 +19,7 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemReader;
@@ -58,6 +60,7 @@ public class BatchConfig {
     private final DatabaseWriter writerStep1;
     private final Stats stats;
     private final CustomSkipPolicy customSkipPolicy;
+    private final FlowDecision flowDecision;
 
     @Bean
     public FlatFileItemReader<Product> readerStep1(){
@@ -169,8 +172,13 @@ public class BatchConfig {
     public Job runJob(){
         return new JobBuilder("importProducts",jobRepository)
                 .start(step1())
-                .next(step2())
+                .next(flowDecision)
+                //.on(FlowExecutionStatus.COMPLETED.toString()).end()
+                .on(FlowExecutionStatus.COMPLETED.toString()).to(step2())
+                .on(FlowExecutionStatus.FAILED.toString()).end()
+                .from(step2())
                 .next(step3())
+                .end()
                 .listener(jobListener)
                 .build();
     }
