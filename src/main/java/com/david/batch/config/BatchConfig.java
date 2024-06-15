@@ -34,6 +34,7 @@ import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.support.ListItemReader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
@@ -61,11 +62,13 @@ public class BatchConfig {
     private final Stats stats;
     private final CustomSkipPolicy customSkipPolicy;
     private final FlowDecision flowDecision;
+    @Value("${spring.data.directory}")
+    private String directory;
 
     @Bean
     public FlatFileItemReader<Product> readerStep1(){
         FlatFileItemReader<Product> itemReader = new FlatFileItemReader<>();
-        itemReader.setResource(new FileSystemResource("src/main/resources/products.csv"));
+        itemReader.setResource(new FileSystemResource(directory));
         itemReader.setName("csvReader");
         itemReader.setLinesToSkip(1);
         itemReader.setLineMapper(lineMapper());
@@ -173,7 +176,7 @@ public class BatchConfig {
         return new JobBuilder("importProducts",jobRepository)
                 .start(step1())
                 .next(flowDecision)
-                //.on(FlowExecutionStatus.COMPLETED.toString()).end()
+                .on(FlowExecutionStatus.COMPLETED.toString()).end()
                 .on(FlowExecutionStatus.COMPLETED.toString()).to(step2())
                 .on(FlowExecutionStatus.FAILED.toString()).end()
                 .from(step2())

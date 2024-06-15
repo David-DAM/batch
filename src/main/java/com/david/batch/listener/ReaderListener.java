@@ -26,6 +26,6 @@ public class ReaderListener implements ItemReadListener<Product> {
     @Override
     public void onReadError(Exception ex) {
         stats.addError();
-        log.error("Error reading file: {}",ex.getMessage());
+        //log.error("Error reading file: {}",ex.getMessage());
     }
 }

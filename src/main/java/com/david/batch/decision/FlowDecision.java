@@ -20,7 +20,7 @@ public class FlowDecision implements JobExecutionDecider {
         List<Throwable> allFailureExceptions = jobExecution.getAllFailureExceptions();
 
         if (allFailureExceptions.size() > 10) return FlowExecutionStatus.FAILED;
-
+    
         log.info("Step {} COMPLETED",stepName);
 
         return FlowExecutionStatus.COMPLETED;

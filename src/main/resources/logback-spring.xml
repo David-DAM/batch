@@ -7,12 +7,14 @@
             <providers>
                 <mdc />
                 <context />
+                <version/>
                 <logLevel />
                 <loggerName />
                 <pattern>
                     <pattern>
                         {
-                        "app": "test-log"
+                            "app": "ecommerce-batch",
+                            "traceId": "%mdc{traceId}"
                         }
                     </pattern>
                 </pattern>

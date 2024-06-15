@@ -1,12 +1,14 @@
 package com.david.batch.faultTolerant;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.batch.core.step.skip.SkipLimitExceededException;
 import org.springframework.batch.core.step.skip.SkipPolicy;
 import org.springframework.batch.item.file.FlatFileParseException;
 import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -24,7 +26,6 @@ public class CustomSkipPolicy implements SkipPolicy {
             FlatFileParseException flatFileParseException = (FlatFileParseException) exception;
             String input = flatFileParseException.getInput();
             int lineNumber = flatFileParseException.getLineNumber();
-
             log.error("Error parsing file with input {}, at line {}:",input,lineNumber);
 
             return true;

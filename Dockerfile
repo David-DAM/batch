@@ -1,6 +1,6 @@
 FROM maven:3.8.5-openjdk-17
 
-WORKDIR /eccomerce-batch
+WORKDIR /app
 COPY . .
 RUN mvn clean install
 

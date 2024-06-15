@@ -1,6 +1,7 @@
 package com.david.batch.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
@@ -27,7 +30,7 @@ public class ProductController {
         JobParameters parameters = new JobParametersBuilder()
                 .addLong("startAt",System.currentTimeMillis())
                 .toJobParameters();
-
+        MDC.put("traceId", UUID.randomUUID().toString());
         try {
             jobLauncher.run(job,parameters);
         } catch (JobExecutionAlreadyRunningException | JobParametersInvalidException |

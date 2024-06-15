@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### CUSTOM ###
-src/main/resources/secrets.properties
+secrets.properties

@@ -6,6 +6,7 @@ import com.david.batch.domain.ProductDTO;
 import com.david.batch.domain.Stats;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,7 @@ public class ProcessorListener implements ItemProcessListener<Product, ProductDT
 
     @Override
     public void afterProcess(Product item, ProductDTO result) {
+
         switch (Objects.requireNonNull(result).getCategory()){
             case COMPUTER -> stats.getCategoryQuantities().put(Category.COMPUTER, ++computers);
             case PHONE -> stats.getCategoryQuantities().put(Category.PHONE, ++phones);
