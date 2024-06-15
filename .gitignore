@@ -34,3 +34,10 @@ build/
 
 ### CUSTOM ###
 secrets.properties
+/src/main/resources/products.csv
+/.mvn/wrapper/maven-wrapper.jar
+/.mvn/wrapper/maven-wrapper.properties
+/src/main/resources/report.csv
+/src/main/resources/report.pdf
+/mvnw
+/mvnw.cmd
