@@ -22,7 +22,12 @@ services:
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - "discovery.type=single-node"
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=elastic123
+#      - xpack.security.transport.ssl.enabled=true
+#      - bootstrap.memory_lock=true
+#      - xpack.security.transport.ssl.keystore.path=/usr/share/elasticsearch/config/elasticsearch.keystore
     ports:
       - "9200:9200"
     volumes:
@@ -38,6 +43,11 @@ services:
     environment:
       ELASTICSEARCH_URL: http://elasticsearch:9200
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      #Needed to create a token in http://localhost:9200/_security/service/elastic/kibana/credential/token/token1?pretty with basic auth elastic user
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: AAEAAWVsYXN0aWMva2liYW5hL3Rva2VuMTpVWWdkYjB4M1JvV0lOTERULXcyT0d3
+      #xpack.security.encryptionKey:
+      #ELASTICSEARCH_USERNAME: elastic
+      #ELASTICSEARCH_PASSWORD: elastic123
     depends_on:
       - elasticsearch
     networks:
@@ -47,7 +57,7 @@ services:
     image: docker.elastic.co/logstash/logstash:8.3.3
     container_name: logstash_springboot
     volumes:
-      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
     ports:
       - "5044:5044"
@@ -56,6 +66,12 @@ services:
       - "9600:9600"
     environment:
       LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: elastic123
+      XPACK_MONITORING_ELASTICSEARCH_USERNAME: elastic
+      XPACK_MONITORING_ELASTICSEARCH_PASSWORD: elastic123
+      XPACK_MONITORING_ELASTICSEARCH_HOSTS: "elasticsearch:9200"
+      XPACK_MONITORING_ENABLED: "true"
     networks:
       - elastic
     depends_on:
