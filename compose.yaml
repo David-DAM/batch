@@ -43,11 +43,12 @@ services:
     environment:
       ELASTICSEARCH_URL: http://elasticsearch:9200
       ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
-      #Needed to create a token in http://localhost:9200/_security/service/elastic/kibana/credential/token/token1?pretty with basic auth elastic user
+      #Needed to create a token in http://localhost:9200/_security/service/elastic/kibana/credential/token/token1?pretty with basic auth with elastic user
       ELASTICSEARCH_SERVICEACCOUNTTOKEN: AAEAAWVsYXN0aWMva2liYW5hL3Rva2VuMTpVWWdkYjB4M1JvV0lOTERULXcyT0d3
-      #xpack.security.encryptionKey:
       #ELASTICSEARCH_USERNAME: elastic
       #ELASTICSEARCH_PASSWORD: elastic123
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     depends_on:
       - elasticsearch
     networks:
