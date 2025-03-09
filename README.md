@@ -32,7 +32,7 @@ La aplicación estará disponible en `http://localhost:8080`.
     - Se utiliza un flujo de decisión (`FlowDecision`) para manejar caminos alternativos.
     - Es tolerante a fallos y utiliza listeners para gestionar errores y eventos.
 3. **Salida**:
-    - Se genera un archivo CSV con los resultados del reporte.
+    - Se genera un archivo PDF y CSV con los resultados del reporte.
     - El reporte se adjunta a un correo electrónico que se envía al destinatario.
 
 ## Características Principales
