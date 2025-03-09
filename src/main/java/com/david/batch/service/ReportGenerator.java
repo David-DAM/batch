@@ -20,13 +20,13 @@ public class ReportGenerator {
     public void exportToPdf(List<ProductDTO> list) throws JRException, FileNotFoundException {
 
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("petsData", new JRBeanCollectionDataSource(list));
+        params.put("reportsData", new JRBeanCollectionDataSource(list));
 
         JasperPrint report = JasperFillManager.fillReport(JasperCompileManager.compileReport(
                 ResourceUtils.getFile("src/main/resources/report.jrxml")
                         .getAbsolutePath()), params, new JREmptyDataSource());
 
-        JasperExportManager.exportReportToPdfFile(report,"src/main/resources/report.pdf");
+        JasperExportManager.exportReportToPdfFile(report, SendEmailStats.REPORT_PDF_PATH);
     }
 
 

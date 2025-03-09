@@ -3,6 +3,7 @@ package com.david.batch.domain;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
+
 @Component
 public class ProductDTOMapper implements Function<Product, ProductDTO> {
     @Override
@@ -10,7 +11,7 @@ public class ProductDTOMapper implements Function<Product, ProductDTO> {
         return new ProductDTO.ProductDTOBuilder()
                 .id(product.getId())
                 .name(product.getName())
-                .category(product.getCategory())
+                .category(product.getCategory().name())
                 .build();
     }
 }

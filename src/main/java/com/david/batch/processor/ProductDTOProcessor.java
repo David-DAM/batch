@@ -14,7 +14,7 @@ public class ProductDTOProcessor implements ItemProcessor<Product, ProductDTO> {
     private final ProductDTOMapper mapper;
 
     @Override
-    public ProductDTO process(Product item) throws Exception {
+    public ProductDTO process(Product item) {
 
         return mapper.apply(item);
     }

@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: batch
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spring
+    username: root
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    protocol: smtp
+    username: ${EMAIL_FROM}
+    password: ${EMAIL_PASSWORD}
+    to: ${EMAIL_TO}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

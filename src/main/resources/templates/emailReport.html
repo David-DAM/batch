@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Results of import process</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            border: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+<h1>Results of import process</h1>
+<table>
+    <tr>
+        <th>ERRORS</th>
+        <th>PROCESSED</th>
+        <th>COMPUTERS PROCESSED</th>
+        <th>PHONES PROCESSED</th>
+    </tr>
+    <tr>
+        <td>{errors}</td>
+        <td>{processes}</td>
+        <td>{computers}</td>
+        <td>{phones}</td>
+    </tr>
+</table>
+</body>
+</html>
